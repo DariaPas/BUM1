@@ -1,9 +1,12 @@
-package eus.ehu.bum1_fx;
+package eus.ehu.bum1_fx.logic;
 
 import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import eus.ehu.bum1_fx.logic.CommissionCalculator;
+import eus.ehu.bum1_fx.logic.Currency;
+import eus.ehu.bum1_fx.logic.ForexOperator;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,6 +21,7 @@ import javafx.scene.control.TextField;
 
 
 public class CalculatorController {
+        public ExchangeCalculator bizLogic;
 
         @FXML
         private TextField amountTextField;
@@ -33,11 +37,13 @@ public class CalculatorController {
 
         @FXML
         void initialize() {
-            // initialize toComboBox
-            fromComboBox.setItems(FXCollections.observableArrayList(Currency.longNames()));
 
-            // initialize fromComboBox
-            toComboBox.setItems(FXCollections.observableArrayList(Currency.longNames()));
+            this.bizLogic = new BarcenaysCalculator();
+
+            fromComboBox.setItems(FXCollections.observableArrayList(bizLogic.getCurrencyLongNames()));
+            toComboBox.setItems(FXCollections.observableArrayList(bizLogic.getCurrencyLongNames()));
+            //fromComboBox.setItems(FXCollections.observableArrayList(Currency.longNames()));
+            //toComboBox.setItems(FXCollections.observableArrayList(Currency.longNames()));
 
             result.setBackground(new Background(
                     new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -64,10 +70,11 @@ public class CalculatorController {
                     ForexOperator operator = new ForexOperator(origCurrency,
                             origAmount, endCurrency);
                     try {
-                        double destAmount = operator.getChangeValue();
-                        CommissionCalculator calculator = new CommissionCalculator(destAmount,
-                                endCurrency);
-                        destAmount -= calculator.calculateCommission();
+                        double destAmount = bizLogic.getChangeValue(origCurrency, origAmount, endCurrency);
+
+                        // ATTENCION
+                        //CommissionCalculator calculator = new CommissionCalculator(destAmount, endCurrency);
+                        destAmount -= bizLogic.calculateCommission(destAmount, endCurrency);
                         NumberFormat twoDecimal = NumberFormat.getNumberInstance(Locale.US);
                         twoDecimal.setMaximumFractionDigits(2);
                         twoDecimal.setRoundingMode(RoundingMode.FLOOR);
